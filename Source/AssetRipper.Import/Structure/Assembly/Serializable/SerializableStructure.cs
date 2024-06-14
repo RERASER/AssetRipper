@@ -13,6 +13,12 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 {
 	public sealed class SerializableStructure : UnityAssetBase
 	{
+		public HashSet<long>? pathIDS { get; private set; }
+
+		public class OptionalOut<Type>
+		{
+			public Type? Result { get; set; }
+		}
 		public override int SerializedVersion => Type.Version;
 		public override bool FlowMappedInYaml => Type.FlowMappedInYaml;
 
@@ -23,15 +29,25 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 			Fields = new SerializableValue[type.FieldCount];
 		}
 
-		public void Read(ref EndianSpanReader reader, UnityVersion version, TransferInstructionFlags flags)
+		public void Read(ref EndianSpanReader reader, UnityVersion version, TransferInstructionFlags flags, OptionalOut<HashSet<long>>? outPathIDS = null)
 		{
+			pathIDS = [];
 			for (int i = 0; i < Fields.Length; i++)
 			{
 				SerializableType.Field etalon = Type.GetField(i);
 				if (IsAvailable(etalon))
 				{
-					Fields[i].Read(ref reader, version, flags, Depth, etalon);
+					Fields[i].Read(ref reader, version, flags, Depth, etalon, out HashSet<long>? fieldPathIDS);
+					if (fieldPathIDS != null)
+					{
+						pathIDS.UnionWith(fieldPathIDS);
+					}
 				}
+			}
+
+			if (outPathIDS != null)
+			{
+				outPathIDS.Result = new HashSet<long>(pathIDS);
 			}
 		}
 
