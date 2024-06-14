@@ -26,10 +26,19 @@ public sealed class SerializablePair
 		Depth = depth;
 	}
 
-	public void Read(ref EndianSpanReader reader, UnityVersion version, TransferInstructionFlags flags)
+	public void Read(ref EndianSpanReader reader, UnityVersion version, TransferInstructionFlags flags, out HashSet<long>? pathIDS)
 	{
-		First.Read(ref reader, version, flags, Depth, FirstField);
-		Second.Read(ref reader, version, flags, Depth, SecondField);
+		pathIDS = [];
+		First.Read(ref reader, version, flags, Depth, FirstField, out HashSet<long>? FirstIDS);
+		Second.Read(ref reader, version, flags, Depth, SecondField, out HashSet<long>? SecondIDS);
+		if (FirstIDS != null)
+		{
+			pathIDS.UnionWith(FirstIDS);
+		}
+		if (SecondIDS != null)
+		{
+			pathIDS.UnionWith(SecondIDS);
+		}
 	}
 
 	public void Write(AssetWriter writer)

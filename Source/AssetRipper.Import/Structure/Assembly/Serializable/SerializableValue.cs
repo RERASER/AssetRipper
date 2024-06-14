@@ -362,13 +362,13 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 							AsString = reader.ReadUtf8StringAligned().String;
 							break;
 						case PrimitiveType.Complex:
-							AsAsset = CreateAndReadComplexStructure(ref reader, version, flags, depth, etalon,out pathIDS);
+							AsAsset = CreateAndReadComplexStructure(ref reader, version, flags, depth, etalon, out pathIDS);
 							break;
 						case PrimitiveType.Pair:
 						case PrimitiveType.MapPair:
 							{
 								SerializablePair pair = new(etalon.Type, depth + 1);
-								pair.Read(ref reader, version, flags);
+								pair.Read(ref reader, version, flags, out pathIDS);
 								AsPair = pair;
 							}
 							break;
@@ -433,7 +433,11 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 								for (int i = 0; i < count; i++)
 								{
 									SerializablePair pair = new(etalon.Type, depth + 1);
-									pair.Read(ref reader, version, flags);
+									pair.Read(ref reader, version, flags, out HashSet<long>? elementPathIDS);
+									if (elementPathIDS != null)
+									{
+										pathIDS.UnionWith(elementPathIDS);
+									}
 									pairs[i] = pair;
 								}
 
@@ -547,7 +551,7 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 				reader.Align();
 			}
 
-			static IUnityAssetBase CreateAndReadComplexStructure(ref EndianSpanReader reader, UnityVersion version, TransferInstructionFlags flags, int depth, SerializableType.Field etalon,out HashSet<long>? pathIDS)
+			static IUnityAssetBase CreateAndReadComplexStructure(ref EndianSpanReader reader, UnityVersion version, TransferInstructionFlags flags, int depth, SerializableType.Field etalon, out HashSet<long>? pathIDS)
 			{
 				pathIDS = [];
 				IUnityAssetBase asset = etalon.Type.CreateInstance(depth + 1, version);
