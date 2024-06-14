@@ -557,7 +557,6 @@ namespace AssetRipper.Import.Structure.Assembly.Serializable
 				IUnityAssetBase asset = etalon.Type.CreateInstance(depth + 1, version);
 				if (asset is SerializableStructure structure)
 				{
-					structure.Read(ref reader, version, flags);
 					OptionalOut<HashSet<long>> internalStructurePathIDs = new();
 					structure.Read(ref reader, version, flags, internalStructurePathIDs);
 					pathIDS = internalStructurePathIDs.Result;
